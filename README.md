@@ -1,4 +1,4 @@
-# Particles
+# Luminos
 
 An interactive 3D particle system rendered in the browser using [Three.js](https://threejs.org/). 150,000 particles are distributed across a volumetric sphere, each individually sized and colored, and animated in real time via custom GLSL shaders.
 
