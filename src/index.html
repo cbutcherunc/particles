@@ -10,6 +10,19 @@
 
   <div id="canvas-container"></div>
 
+  <div id="controls">
+    <div class="controls-row"><kbd>1</kbd><span>Cube</span></div>
+    <div class="controls-row"><kbd>2</kbd><span>Sphere</span></div>
+    <div class="controls-row"><kbd>3</kbd><span>Torus</span></div>
+    <div class="controls-row"><kbd>4</kbd><span>Helix</span></div>
+    <div class="controls-row"><kbd>5</kbd><span>Galaxy</span></div>
+    <div class="controls-divider"></div>
+    <div class="controls-row"><kbd>Space</kbd><span>Explode</span></div>
+    <div class="controls-divider"></div>
+    <div class="controls-row"><kbd>drag</kbd><span>Orbit</span></div>
+    <div class="controls-row"><kbd>scroll</kbd><span>Zoom</span></div>
+  </div>
+
   <script type="x-shader/x-vertex" id="vertexshader">
     attribute float size;
     varying vec3 vColor;
@@ -51,18 +64,18 @@
 
     // Per-formation default camera positions
     const formationCameras = {
-      cloud:  { radius: 1050, theta: Math.PI / 4, phi: Math.PI / 2 - Math.atan(1 / Math.SQRT2), targetY: 0 },
-      sphere: { radius: 600, theta: 0.4,          phi: Math.PI / 2 - 0.2,                        targetY: 0 },
-      torus:  { radius: 700, theta: 0.4,          phi: Math.PI / 2 - 0.7,                        targetY: 0 },
-      helix:  { radius: 560, theta: 0.5,          phi: Math.PI / 2 - 0.15,                       targetY: 0 },
+      cube:   { radius: 1050, theta: Math.PI / 4, phi: Math.PI / 2 - Math.atan(1 / Math.SQRT2), targetY: 0 },
+      sphere:  { radius: 600,  theta: 0.4,          phi: Math.PI / 2 - 0.2,                       targetY: 0 },
+      torus:   { radius: 700,  theta: 0.4,          phi: Math.PI / 2 - 0.7,                       targetY: 0 },
+      helix:   { radius: 560,  theta: 0.5,          phi: Math.PI / 2 - 0.15,                      targetY: 0 },
+      galaxy:  { radius: 600,  theta: 0.4,          phi: Math.PI / 2 - 0.85,                      targetY: 0 },
     };
 
     // --- Orbit state ---
-    let orbitRadius = formationCameras.cloud.radius;
-    let orbitTheta  = formationCameras.cloud.theta;
-    let orbitPhi    = formationCameras.cloud.phi;
+    let orbitRadius = formationCameras.cube.radius;
+    let orbitTheta = formationCameras.cube.theta;
+    let orbitPhi = formationCameras.cube.phi;
     const orbitTarget = new THREE.Vector3();
-    let dragButton = -1;
     let isDragging = false;
     let lastMouseX = 0, lastMouseY = 0;
     let mouseMoved = false;
@@ -74,7 +87,7 @@
     // --- Formation / morph state ---
     const formationData = {};  // keyed by name, each is Float32Array(particles * 3)
     let morphFrom = new Float32Array(particles * 3);
-    let morphTo   = new Float32Array(particles * 3);
+    let morphTo = new Float32Array(particles * 3);
     let morphT = 1.0;
     const MORPH_SPEED = 0.025;
 
@@ -83,10 +96,10 @@
 
     // ---- Formation builders ----
 
-    function buildCloud(radius) {
+    function buildCube(radius) {
       const out = new Float32Array(particles * 3);
       for (let i = 0; i < particles; i++) {
-        out[i*3]   = (Math.random() * 2 - 1) * radius;
+        out[i*3] = (Math.random() * 2 - 1) * radius;
         out[i*3+1] = (Math.random() * 2 - 1) * radius;
         out[i*3+2] = (Math.random() * 2 - 1) * radius;
       }
@@ -97,8 +110,8 @@
       const out = new Float32Array(particles * 3);
       for (let i = 0; i < particles; i++) {
         const theta = Math.random() * Math.PI * 2;
-        const phi   = Math.acos(2 * Math.random() - 1);
-        out[i*3]   = radius * Math.sin(phi) * Math.cos(theta);
+        const phi = Math.acos(2 * Math.random() - 1);
+        out[i*3] = radius * Math.sin(phi) * Math.cos(theta);
         out[i*3+1] = radius * Math.cos(phi);
         out[i*3+2] = radius * Math.sin(phi) * Math.sin(theta);
       }
@@ -111,7 +124,7 @@
       for (let i = 0; i < particles; i++) {
         const u = Math.random() * Math.PI * 2;
         const v = Math.random() * Math.PI * 2;
-        out[i*3]   = (R + r * Math.cos(u)) * Math.cos(v);
+        out[i*3] = (R + r * Math.cos(u)) * Math.cos(v);
         out[i*3+1] = r * Math.sin(u);
         out[i*3+2] = (R + r * Math.cos(u)) * Math.sin(v);
       }
@@ -125,9 +138,27 @@
         const strand = i % 2;
         const t = (Math.floor(i / 2) / (particles / 2)) * turns * Math.PI * 2;
         const offset = strand * Math.PI;
-        out[i*3]   = helixR * Math.cos(t + offset);
+        out[i*3] = helixR * Math.cos(t + offset);
         out[i*3+1] = (t / (turns * Math.PI * 2)) * helixH - helixH / 2;
         out[i*3+2] = helixR * Math.sin(t + offset);
+      }
+      return out;
+    }
+
+    function buildGalaxy() {
+      const out = new Float32Array(particles * 3);
+      const arms = 3, spread = 180, height = 18, coreRadius = 30;
+      for (let i = 0; i < particles; i++) {
+        // Distance from centre — concentrate particles toward the core
+        const r = coreRadius + Math.pow(Math.random(), 0.6) * (spread - coreRadius);
+        const armAngle = (i % arms) * (Math.PI * 2 / arms);
+        // Spiral: angle increases with radius
+        const spin = (r / spread) * Math.PI * 3;
+        const scatter = (1 - r / spread) * 0.6 + 0.1;
+        const angle = armAngle + spin + (Math.random() - 0.5) * scatter * 2;
+        out[i*3]   = r * Math.cos(angle);
+        out[i*3+1] = (Math.random() - 0.5) * height * (1 - r / spread * 0.8);
+        out[i*3+2] = r * Math.sin(angle);
       }
       return out;
     }
@@ -146,8 +177,8 @@
       // Reset camera to this formation's default view
       const cam = formationCameras[name];
       orbitRadius = cam.radius;
-      orbitTheta  = cam.theta;
-      orbitPhi    = cam.phi;
+      orbitTheta = cam.theta;
+      orbitPhi = cam.phi;
       orbitTarget.set(0, cam.targetY, 0);
     }
 
@@ -189,14 +220,15 @@
       });
 
       // Build all formations
-      formationData.cloud  = buildCloud(200);
-      formationData.sphere = buildSphere(180);
-      formationData.torus  = buildTorus();
-      formationData.helix  = buildHelix();
+      formationData.cube   = buildCube(200);
+      formationData.sphere  = buildSphere(180);
+      formationData.torus   = buildTorus();
+      formationData.helix   = buildHelix();
+      formationData.galaxy  = buildGalaxy();
 
-      // Start in cloud formation
-      morphFrom.set(formationData.cloud);
-      morphTo = formationData.cloud;
+      // Start in cube formation
+      morphFrom.set(formationData.cube);
+      morphTo = formationData.cube;
 
       // Turbulence: random phase per particle per axis
       turbPhase = new Float32Array(particles * 3);
@@ -217,7 +249,7 @@
         sizes[i] = 20;
       }
 
-      geometry.setAttribute('position', new THREE.Float32BufferAttribute(formationData.cloud.slice(), 3).setUsage(THREE.DynamicDrawUsage));
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(formationData.cube.slice(), 3).setUsage(THREE.DynamicDrawUsage));
       geometry.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
       geometry.setAttribute('size',     new THREE.Float32BufferAttribute(sizes,  1).setUsage(THREE.DynamicDrawUsage));
 
@@ -233,15 +265,11 @@
 
       window.addEventListener('resize', onWindowResize);
 
-      // Left-drag = orbit, right-drag = pan
-      window.addEventListener('contextmenu', (e) => e.preventDefault());
-
       window.addEventListener('mousedown', (e) => {
-        isDragging  = true;
-        dragButton  = e.button;
-        mouseMoved  = false;
-        lastMouseX  = e.clientX;
-        lastMouseY  = e.clientY;
+        isDragging = true;
+        mouseMoved = false;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
       });
 
       window.addEventListener('mousemove', (e) => {
@@ -251,24 +279,12 @@
         if (Math.abs(dx) > 2 || Math.abs(dy) > 2) mouseMoved = true;
         lastMouseX = e.clientX;
         lastMouseY = e.clientY;
-
-        if (dragButton === 0) {
-          orbitTheta -= dx * 0.005;
-          orbitPhi    = Math.max(0.15, Math.min(Math.PI - 0.15, orbitPhi - dy * 0.005));
-        } else if (dragButton === 2) {
-          const panSpeed = orbitRadius * 0.001;
-          const right = new THREE.Vector3();
-          const up    = new THREE.Vector3();
-          right.setFromMatrixColumn(camera.matrix, 0);
-          up.setFromMatrixColumn(camera.matrix, 1);
-          orbitTarget.addScaledVector(right, -dx * panSpeed);
-          orbitTarget.addScaledVector(up,    -dy * panSpeed);
-        }
+        orbitTheta -= dx * 0.005;
+        orbitPhi    = Math.max(0.15, Math.min(Math.PI - 0.15, orbitPhi - dy * 0.005));
       });
 
       window.addEventListener('mouseup', () => {
         isDragging = false;
-        dragButton = -1;
       });
 
       window.addEventListener('wheel', (e) => {
@@ -277,14 +293,14 @@
 
       // Keyboard: 1-4 = formations, Space = explode/implode
       window.addEventListener('keydown', (e) => {
-        const map = { '1': 'cloud', '2': 'sphere', '3': 'torus', '4': 'helix' };
+        const map = { '1': 'cube', '2': 'sphere', '3': 'torus', '4': 'helix', '5': 'galaxy' };
         if (map[e.key]) morphTo_formation(map[e.key]);
         if (e.code === 'Space') {
           e.preventDefault();
           explodeTarget = explodeTarget === 0 ? 1 : 0;
           if (explodeTarget === 0) {
             const name = Object.keys(formationCameras)[Object.values(formationData).indexOf(morphTo)];
-            const cam  = formationCameras[name] || formationCameras.cloud;
+            const cam  = formationCameras[name] || formationCameras.cube;
             orbitRadius = cam.radius;
             orbitTheta  = cam.theta;
             orbitPhi    = cam.phi;
