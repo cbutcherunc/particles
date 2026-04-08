@@ -37,6 +37,16 @@ Switching formations or imploding resets the camera to the default view.
 
 Three.js is loaded from a CDN via an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) — no build step required.
 
+## Project Structure
+
+```
+.
+├── src/
+│   ├── index.html    # Entry point — markup, shaders, and application logic
+│   └── style.css     # Styles
+└── vercel.json       # Vercel deployment config
+```
+
 ## How It Works
 
 On load, `init()` sets up a Three.js scene with a perspective camera positioned 300 units back along the Z axis. A `BufferGeometry` is populated with 150,000 randomly positioned vertices within a 200-unit radius sphere. Each vertex is assigned:

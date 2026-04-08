@@ -4,102 +4,7 @@
   <title>Luminos</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      overflow: hidden;
-      background: #000;
-      font-family: Arial, sans-serif;
-      color: #fff;
-    }
-
-    #canvas-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-    }
-
-    #content {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-      padding: 2rem;
-      pointer-events: none;
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(24px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes glow {
-      0%, 100% { text-shadow: 0 0 30px rgba(255,255,255,0.4), 0 2px 20px rgba(0,0,0,0.8); }
-      50%       { text-shadow: 0 0 60px rgba(255,255,255,0.9), 0 2px 20px rgba(0,0,0,0.8); }
-    }
-
-    #content h1 {
-      font-size: clamp(2rem, 6vw, 5rem);
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-      color: #fff;
-      text-shadow: 0 0 40px rgba(255,255,255,0.6), 0 2px 20px rgba(0,0,0,0.8);
-      margin-bottom: 1.5rem;
-      opacity: 0;
-      animation: fadeUp 1s ease forwards, glow 4s ease-in-out 1s infinite;
-    }
-
-    #content p {
-      font-size: clamp(1rem, 2.5vw, 1.4rem);
-      color: rgba(255, 255, 255, 0.85);
-      text-shadow: 0 1px 12px rgba(0,0,0,0.9);
-      max-width: 560px;
-      line-height: 1.6;
-      margin-bottom: 2.5rem;
-      opacity: 0;
-      animation: fadeUp 1s ease 0.4s forwards;
-    }
-
-    #content .btn {
-      pointer-events: all;
-      display: inline-block;
-      padding: 0.85rem 2.2rem;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 100px;
-      color: #fff;
-      text-decoration: none;
-      font-size: 1rem;
-      letter-spacing: 0.04em;
-      backdrop-filter: blur(10px);
-      background: rgba(255, 255, 255, 0.08);
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-
-    #content .btn:hover {
-      background: rgba(255, 255, 255, 0.16);
-      border-color: rgba(255, 255, 255, 0.45);
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -144,10 +49,18 @@
 
     const particles = 150000;
 
+    // Per-formation default camera positions
+    const formationCameras = {
+      cloud:  { radius: 1050, theta: Math.PI / 4, phi: Math.PI / 2 - Math.atan(1 / Math.SQRT2), targetY: 0 },
+      sphere: { radius: 600, theta: 0.4,          phi: Math.PI / 2 - 0.2,                        targetY: 0 },
+      torus:  { radius: 700, theta: 0.4,          phi: Math.PI / 2 - 0.7,                        targetY: 0 },
+      helix:  { radius: 560, theta: 0.5,          phi: Math.PI / 2 - 0.15,                       targetY: 0 },
+    };
+
     // --- Orbit state ---
-    let orbitRadius = 300;
-    let orbitTheta = 0;
-    let orbitPhi = Math.PI / 2;
+    let orbitRadius = formationCameras.cloud.radius;
+    let orbitTheta  = formationCameras.cloud.theta;
+    let orbitPhi    = formationCameras.cloud.phi;
     const orbitTarget = new THREE.Vector3();
     let dragButton = -1;
     let isDragging = false;
@@ -230,9 +143,12 @@
       morphTo = formationData[name];
       morphT = 0;
 
-      // Reset camera to default view
-      orbitRadius = 300;
-      orbitTarget.set(0, 0, 0);
+      // Reset camera to this formation's default view
+      const cam = formationCameras[name];
+      orbitRadius = cam.radius;
+      orbitTheta  = cam.theta;
+      orbitPhi    = cam.phi;
+      orbitTarget.set(0, cam.targetY, 0);
     }
 
     // ---- Spark texture ----
@@ -356,7 +272,7 @@
       });
 
       window.addEventListener('wheel', (e) => {
-        orbitRadius = Math.max(80, Math.min(900, orbitRadius + e.deltaY * 0.4));
+        orbitRadius = Math.max(80, Math.min(1200, orbitRadius + e.deltaY * 0.4));
       }, { passive: true });
 
       // Keyboard: 1-4 = formations, Space = explode/implode
@@ -367,8 +283,12 @@
           e.preventDefault();
           explodeTarget = explodeTarget === 0 ? 1 : 0;
           if (explodeTarget === 0) {
-            orbitRadius = 300;
-            orbitTarget.set(0, 0, 0);
+            const name = Object.keys(formationCameras)[Object.values(formationData).indexOf(morphTo)];
+            const cam  = formationCameras[name] || formationCameras.cloud;
+            orbitRadius = cam.radius;
+            orbitTheta  = cam.theta;
+            orbitPhi    = cam.phi;
+            orbitTarget.set(0, cam.targetY, 0);
           }
         }
       });
