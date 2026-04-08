@@ -35,46 +35,7 @@ Switching formations or imploding resets the camera to the default view.
 | [Vite](https://vitejs.dev/) | Local development server |
 | GLSL | Custom vertex and fragment shaders |
 
-Three.js is loaded from a CDN via an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) — no npm install required for the Three.js dependency itself.
-
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) (v18 or later recommended)
-- npm (included with Node.js)
-
-## Getting Started
-
-1. **Clone the repository**
-
-   ```bash
-   git clone <repository-url>
-   cd particles-project
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server**
-
-   ```bash
-   npm run dev
-   ```
-
-4. **Open in your browser**
-
-   Navigate to `http://localhost:5173` (or whichever port Vite reports in the terminal).
-
-## Project Structure
-
-```
-.
-├── src/
-│   └── index.html      # Entry point — markup, styles, shaders, and application logic
-└── vite.config.js      # Vite configuration (sets src/ as the project root)
-```
+Three.js is loaded from a CDN via an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) — no build step required.
 
 ## How It Works
 
