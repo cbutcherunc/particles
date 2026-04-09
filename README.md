@@ -1,6 +1,6 @@
 # Luminos
 
-An interactive 3D particle system rendered in the browser using [Three.js](https://threejs.org/). 150,000 particles are distributed across a volumetric sphere, each individually sized and colored, and animated in real time via custom GLSL shaders.
+An interactive 3D particle system rendered in the browser using [Three.js](https://threejs.org/). 150,000 particles are individually sized and colored, and animated in real time via custom GLSL shaders. Particles can be morphed between five 3D formations — cube, sphere, torus, double helix, and galaxy — and launched into an explosive scatter with a keypress.
 
 ## Controls
 
@@ -10,10 +10,11 @@ An interactive 3D particle system rendered in the browser using [Three.js](https
 | Right-drag | Pan |
 | Scroll | Zoom in / out |
 | `Space` | Explode / implode particles |
-| `1` | Cloud formation |
+| `1` | Cube formation |
 | `2` | Sphere formation |
 | `3` | Torus formation |
 | `4` | Helix formation |
+| `5` | Galaxy formation |
 
 Switching formations or imploding resets the camera to the default view.
 
