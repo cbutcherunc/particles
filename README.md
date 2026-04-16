@@ -1,6 +1,6 @@
 # Luminos
 
-An interactive 3D particle system rendered in the browser using [Three.js](https://threejs.org/). 150,000 particles are individually sized and colored, and animated in real time via custom GLSL shaders. Particles can be morphed between five 3D formations — cube, sphere, torus, double helix, and galaxy — and launched into an explosive scatter with a keypress.
+An interactive 3D particle system rendered in the browser using [Three.js](https://threejs.org/). 150,000 particles are individually sized and colored, and animated in real time via custom GLSL shaders. Particles can be morphed between five 3D formations — cube, sphere, torus, trefoil knot, and galaxy — and launched into an explosive scatter with a keypress.
 
 ## Controls
 
@@ -13,7 +13,7 @@ An interactive 3D particle system rendered in the browser using [Three.js](https
 | `1` | Cube formation |
 | `2` | Sphere formation |
 | `3` | Torus formation |
-| `4` | Helix formation |
+| `4` | Trefoil knot formation |
 | `5` | Galaxy formation |
 
 Switching formations or imploding resets the camera to the default view.
@@ -24,7 +24,7 @@ Switching formations or imploding resets the camera to the default view.
 - **Full-spectrum color mapping** — particles are colored across the HSL spectrum, creating a smooth rainbow distribution across the system.
 - **Animated pulsing** — each particle's size oscillates independently using a sine function offset by its index, giving the cloud an organic, breathing quality.
 - **Turbulence** — each particle has a randomised per-axis phase offset, producing independent organic drift across all formations.
-- **Formation morphing** — particles smoothly interpolate between four 3D shapes (cloud, sphere, torus, double helix) using smooth-step easing.
+- **Formation morphing** — particles smoothly interpolate between five 3D shapes (cube, sphere, torus, trefoil knot, galaxy) using smooth-step easing.
 - **Explode / implode** — particles scale outward to 5× their positions and spring back, composited on top of any active morph or turbulence.
 - **Responsive layout** — the canvas resizes correctly on window resize, maintaining the correct camera aspect ratio.
 
