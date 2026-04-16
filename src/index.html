@@ -15,7 +15,7 @@
     <div class="controls-row"><kbd>1</kbd><span>Cube</span></div>
     <div class="controls-row"><kbd>2</kbd><span>Sphere</span></div>
     <div class="controls-row"><kbd>3</kbd><span>Torus</span></div>
-    <div class="controls-row"><kbd>4</kbd><span>Helix</span></div>
+    <div class="controls-row"><kbd>4</kbd><span>Trefoil</span></div>
     <div class="controls-row"><kbd>5</kbd><span>Galaxy</span></div>
     <div class="controls-divider"></div>
     <div class="controls-row"><kbd>Space</kbd><span>Explode</span></div>
@@ -68,7 +68,7 @@
       cube:   { radius: 1050, theta: Math.PI / 4, phi: Math.PI / 2 - Math.atan(1 / Math.SQRT2), targetY: 0 },
       sphere:  { radius: 600,  theta: 0.4,          phi: Math.PI / 2 - 0.2,                       targetY: 0 },
       torus:   { radius: 700,  theta: 0.4,          phi: Math.PI / 2 - 0.7,                       targetY: 0 },
-      helix:   { radius: 560,  theta: 0.5,          phi: Math.PI / 2 - 0.15,                      targetY: 0 },
+      trefoil: { radius: 700,  theta: 0.0,          phi: Math.PI / 2 - 0.05,                      targetY: 0 },
       galaxy:  { radius: 600,  theta: 0.4,          phi: Math.PI / 2 - 0.85,                      targetY: 0 },
     };
 
@@ -132,16 +132,38 @@
       return out;
     }
 
-    function buildHelix() {
+    function buildTrefoil() {
       const out = new Float32Array(particles * 3);
-      const helixR = 60, helixH = 300, turns = 10;
+      const scale = 55;
+      const tubeR = 18;
       for (let i = 0; i < particles; i++) {
-        const strand = i % 2;
-        const t = (Math.floor(i / 2) / (particles / 2)) * turns * Math.PI * 2;
-        const offset = strand * Math.PI;
-        out[i*3] = helixR * Math.cos(t + offset);
-        out[i*3+1] = (t / (turns * Math.PI * 2)) * helixH - helixH / 2;
-        out[i*3+2] = helixR * Math.sin(t + offset);
+        const t = Math.random() * Math.PI * 2;
+
+        const px = (Math.sin(t) + 2 * Math.sin(2 * t)) * scale;
+        const py = (2 * Math.cos(2 * t) - Math.cos(t)) * scale;
+        const pz = -Math.sin(3 * t) * scale;
+
+        let tx = Math.cos(t) + 4 * Math.cos(2 * t);
+        let ty = -4 * Math.sin(2 * t) + Math.sin(t);
+        let tz = -3 * Math.cos(3 * t);
+        const tLen = Math.sqrt(tx*tx + ty*ty + tz*tz);
+        tx /= tLen; ty /= tLen; tz /= tLen;
+
+        let nx = -ty, ny = tx, nz = 0;
+        const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz);
+        nx /= nLen; ny /= nLen; nz /= nLen;
+
+        const bx = ty*nz - tz*ny;
+        const by = tz*nx - tx*nz;
+        const bz = tx*ny - ty*nx;
+
+        const phi = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * tubeR;
+        const cp = Math.cos(phi), sp = Math.sin(phi);
+
+        out[i*3]   = px + r * (cp * nx + sp * bx);
+        out[i*3+1] = py + r * (cp * ny + sp * by);
+        out[i*3+2] = pz + r * (cp * nz + sp * bz);
       }
       return out;
     }
@@ -224,7 +246,7 @@
       formationData.cube   = buildCube(200);
       formationData.sphere  = buildSphere(180);
       formationData.torus   = buildTorus();
-      formationData.helix   = buildHelix();
+      formationData.trefoil = buildTrefoil();
       formationData.galaxy  = buildGalaxy();
 
       // Start in cube formation
@@ -294,7 +316,7 @@
 
       // Keyboard: 1-4 = formations, Space = explode/implode
       window.addEventListener('keydown', (e) => {
-        const map = { '1': 'cube', '2': 'sphere', '3': 'torus', '4': 'helix', '5': 'galaxy' };
+        const map = { '1': 'cube', '2': 'sphere', '3': 'torus', '4': 'trefoil', '5': 'galaxy' };
         if (map[e.key]) morphTo_formation(map[e.key]);
         if (e.code === 'Space') {
           e.preventDefault();
